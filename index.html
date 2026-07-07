@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sozial- und Gesellschaftstheorie – Lernapp</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#1a2233; --panel2:#232d42; --line:#2e3a54;
+    --txt:#e8edf6; --muted:#9fb0cc; --accent:#5b8cff; --accent2:#7c5bff;
+    --good:#37c98b; --bad:#ff6b6b; --warn:#ffb547;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(160deg,#0f1420,#131a2b 60%,#161d30);
+    color:var(--txt); min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:26px 20px 16px; text-align:center;
+    border-bottom:1px solid var(--line);
+    background:rgba(20,26,42,.6); backdrop-filter:blur(6px);
+    position:sticky; top:0; z-index:20;
+  }
+  header h1{margin:0;font-size:20px;letter-spacing:.3px}
+  header p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 80px}
+
+  /* progress bar top */
+  .topbar{max-width:920px;margin:14px auto 0;display:flex;align-items:center;gap:12px;padding:0 16px}
+  .bar{flex:1;height:8px;background:var(--panel);border-radius:99px;overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+  .topbar small{color:var(--muted);font-size:12px;white-space:nowrap}
+
+  /* home grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:8px}
+  .card-t{
+    background:linear-gradient(150deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:16px; padding:18px;
+    cursor:pointer; transition:transform .15s,border-color .15s,box-shadow .15s;
+    position:relative; overflow:hidden;
+  }
+  .card-t:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 10px 30px -12px rgba(91,140,255,.5)}
+  .card-t .num{font-size:12px;color:var(--muted);font-weight:600}
+  .card-t h3{margin:8px 0 4px;font-size:17px}
+  .card-t .sub{color:var(--muted);font-size:13px;line-height:1.4}
+  .card-t .meta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .pill.done{background:rgba(55,201,139,.15);border-color:rgba(55,201,139,.4);color:var(--good)}
+
+  /* buttons */
+  button{font-family:inherit}
+  .btn{
+    background:var(--accent);color:#fff;border:none;border-radius:12px;
+    padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;transition:filter .15s,transform .1s
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .btn.sm{padding:8px 14px;font-size:13px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .back{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:6px 0;display:inline-flex;align-items:center;gap:6px}
+  .back:hover{color:var(--txt)}
+
+  .modeswitch{display:flex;gap:8px;margin:16px 0 20px;background:var(--panel);padding:6px;border-radius:14px;width:fit-content;border:1px solid var(--line)}
+  .modeswitch button{background:none;border:none;color:var(--muted);padding:9px 18px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600}
+  .modeswitch button.active{background:var(--accent);color:#fff}
+
+  h2.title{font-size:22px;margin:6px 0 2px}
+  .lead{color:var(--muted);font-size:14px;margin:0 0 4px}
+
+  /* flashcard */
+  .fc-stage{perspective:1600px;margin:18px 0}
+  .flashcard{
+    position:relative;width:100%;min-height:300px;cursor:pointer;
+    transform-style:preserve-3d;transition:transform .5s;
+  }
+  .flashcard.flip{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;
+    border:1px solid var(--line);border-radius:20px;padding:30px;
+    display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(155deg,var(--panel),var(--panel2));
+  }
+  .face .tag{position:absolute;top:16px;left:20px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .face .hint{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:12px;color:var(--muted)}
+  .front .q{font-size:24px;font-weight:600;text-align:center;line-height:1.35}
+  .back{transform:rotateY(180deg);background:linear-gradient(155deg,#1a2740,#20304d)}
+  .back .a{font-size:16px;line-height:1.55}
+  .back .a strong{color:#bcd0ff}
+  .fc-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
+  .counter{color:var(--muted);font-size:13px}
+  .know-row{display:flex;gap:10px;justify-content:center;margin-top:14px}
+  .know-row .btn{min-width:150px}
+  .btn.good{background:var(--good)}
+  .btn.again{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+
+  /* quiz */
+  .quiz-q{background:linear-gradient(155deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:24px;margin-top:16px}
+  .quiz-q .qnum{font-size:12px;color:var(--muted);font-weight:600}
+  .quiz-q h3{margin:8px 0 18px;font-size:19px;line-height:1.4}
+  .opt{
+    display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+    color:var(--txt);padding:14px 16px;border-radius:12px;margin-bottom:10px;cursor:pointer;font-size:15px;transition:.12s;line-height:1.4
+  }
+  .opt:hover{border-color:var(--accent)}
+  .opt.correct{background:rgba(55,201,139,.18);border-color:var(--good);color:#c9ffe6}
+  .opt.wrong{background:rgba(255,107,107,.16);border-color:var(--bad);color:#ffd6d6}
+  .opt.disabled{cursor:default}
+  .explain{margin-top:6px;padding:14px 16px;border-radius:12px;background:rgba(91,140,255,.1);border:1px solid rgba(91,140,255,.3);font-size:14px;line-height:1.5;color:#d5e2ff}
+  .explain.hidden{display:none}
+
+  .result{text-align:center;padding:40px 20px}
+  .result .score{font-size:52px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .result p{color:var(--muted)}
+
+  .hidden{display:none}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+  a.reset{color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sozial- &amp; Gesellschaftstheorie</h1>
+  <p>Lernapp · Karteikarten &amp; Quiz zu den Klassikern</p>
+</header>
+<div class="topbar">
+  <div class="bar"><i id="globalbar"></i></div>
+  <small id="globaltxt">0 % gelernt</small>
+</div>
+
+<div class="wrap">
+  <!-- HOME -->
+  <section id="home">
+    <div class="grid" id="themeGrid"></div>
+    <div style="margin-top:26px;text-align:center">
+      <a class="reset" id="resetAll">Fortschritt zurücksetzen</a>
+    </div>
+  </section>
+
+  <!-- THEME VIEW -->
+  <section id="theme" class="hidden">
+    <button class="back" id="backHome">← Übersicht</button>
+    <h2 class="title" id="tTitle"></h2>
+    <p class="lead" id="tLead"></p>
+    <div class="modeswitch">
+      <button data-mode="cards" class="active">Karteikarten</button>
+      <button data-mode="quiz">Quiz</button>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div id="cardsMode">
+      <div class="fc-stage">
+        <div class="flashcard" id="flashcard">
+          <div class="face front">
+            <span class="tag">Begriff / Frage</span>
+            <div class="q" id="fcFront"></div>
+            <span class="hint">Tippen zum Umdrehen</span>
+          </div>
+          <div class="face back">
+            <span class="tag">Antwort</span>
+            <div class="a" id="fcBack"></div>
+            <span class="hint">Tippen zum Umdrehen</span>
+          </div>
+        </div>
+      </div>
+      <div class="know-row" id="knowRow" style="display:none">
+        <button class="btn again" id="btnAgain">Nochmal üben</button>
+        <button class="btn good" id="btnKnow">Gewusst ✓</button>
+      </div>
+      <div class="fc-controls">
+        <button class="btn ghost sm" id="prevCard">‹ Zurück</button>
+        <span class="counter" id="fcCounter"></span>
+        <button class="btn ghost sm" id="nextCard">Weiter ›</button>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quizMode" class="hidden">
+      <div id="quizArea"></div>
+    </div>
+  </section>
+</div>
+
+<footer>Erstellt aus den Tutoriumsfolien · Lernstand wird lokal im Browser gespeichert</footer>
+
+<script>
+/* ============ DATEN ============ */
+const THEMES = [
+  {
+    id:"marx", title:"Karl Marx", sub:"Entfremdung & Arbeit",
+    lead:"Frühschriften: Entfremdung, Gattungswesen, Vergegenständlichung, Privateigentum.",
+    cards:[
+      {q:"Subjekt-Objekt-Umkehrung (Maschinen-Analyse)", a:"Nicht mehr der Mensch beherrscht die Dinge, sondern die <strong>Dinge (Maschinerie) beherrschen den Menschen</strong>. In der Fabrik ist der Automat das Subjekt, der Arbeiter nur ein „bewusstes Organ“, das dem toten Mechanismus als „lebendiges Anhängsel“ einverleibt wird."},
+      {q:"Was ist ein „Gattungswesen“?", a:"Der Mensch macht seine eigene Lebenstätigkeit zum <strong>Gegenstand seines Wollens und Bewusstseins</strong>. Anders als das Tier (eins mit seiner Tätigkeit) produziert er frei, bewusst und universell – sogar „nach den Gesetzen der Schönheit“."},
+      {q:"Definition Entfremdung", a:"Zustand in der kapitalistischen Produktionsweise, in dem die eigene Arbeit, ihre Ergebnisse und der Arbeitsprozess dem Menschen als etwas <strong>Äußerliches, Fremdes und Feindliches</strong> gegenübertreten. Statt sich zu verwirklichen, verliert der Mensch sich an die Dinge, die er produziert."},
+      {q:"Die vier Arten der Entfremdung", a:"1. Vom <strong>Produkt</strong> (Ding als fremde Macht) · 2. Vom <strong>Akt der Produktion</strong> (Arbeit als Zwangsarbeit) · 3. Vom <strong>Gattungswesen</strong> (bewusste Lebenstätigkeit wird bloßes Mittel zur Existenz) · 4. Vom <strong>Mitmenschen</strong> (der andere wird zum Konkurrenten/Mittel)."},
+      {q:"Vergegenständlichung", a:"Prozess, in dem Arbeit sich in einem Gegenstand materialisiert. Im Kapitalismus schlägt dies in <strong>Entwirklichung</strong> um: das geschaffene Objekt tritt dem Arbeiter als „fremdes Wesen“ und „unabhängige Macht“ gegenüber."},
+      {q:"Privateigentum – Marx' Kernthese", a:"Das Privateigentum ist <strong>nicht die Ursache</strong>, sondern <strong>das Resultat der entfremdeten Arbeit</strong>. Es ist eigentlich ein Machtverhältnis: das Recht des Kapitalisten, über Lebenszeit und Tätigkeit des Arbeiters zu verfügen. (Kritik: die Nationalökonomie setzt es einfach voraus.)"},
+      {q:"Arbeiteremanzipation als Lösung", a:"Die Befreiung der Gesellschaft vom Privateigentum erfolgt als <strong>Arbeiteremanzipation</strong>. Darin ist die „allgemein menschliche“ Emanzipation enthalten, weil in der Knechtschaft des Arbeiters das gesamte System der Unterdrückung verwurzelt ist."}
+    ],
+    quiz:[
+      {q:"Wer ist bei der „Maschinen-Analyse“ das Subjekt?", opts:["Der Arbeiter","Der Automat / die Maschine","Der Kapitalist","Der Staat"], correct:1, exp:"Der Automat ist das Subjekt, der Arbeiter nur ein „bewusstes Organ“ und „lebendiges Anhängsel“ des toten Mechanismus."},
+      {q:"Was unterscheidet den Menschen laut Marx vom Tier?", opts:["Er benutzt Werkzeuge","Er lebt in Gruppen","Er produziert frei, bewusst und universell","Er hat Privateigentum"], correct:2, exp:"Als Gattungswesen macht der Mensch seine Lebenstätigkeit zum Gegenstand seines Bewusstseins und produziert universell."},
+      {q:"Welche Aussage zum Privateigentum trifft Marx?", opts:["Es ist die Ursache der Entfremdung","Es ist naturgegeben","Es ist das Resultat der entfremdeten Arbeit","Es ist für Marx unwichtig"], correct:2, exp:"Zentrale Umkehrung: Privateigentum ist Produkt und Konsequenz der entfremdeten Arbeit, nicht ihr Grund."},
+      {q:"„Der Arbeiter betrachtet den anderen nur noch als Konkurrenten.“ – Welche Entfremdung?", opts:["Vom Produkt","Vom Akt der Produktion","Vom Gattungswesen","Vom Mitmenschen"], correct:3, exp:"Die Entfremdung von sich selbst führt dazu, den anderen als Konkurrent/Mittel zur Verwertung zu sehen."},
+      {q:"Vergegenständlichung schlägt im Kapitalismus um in …", opts:["Verwirklichung","Entwirklichung","Vergesellschaftung","Verdinglichung des Kapitals"], correct:1, exp:"Aus der Materialisierung von Arbeit wird Entwirklichung – das Objekt wird zur fremden Macht."}
+    ]
+  },
+  {
+    id:"weber", title:"Max Weber", sub:"Verstehende Soziologie",
+    lead:"Soziales Handeln, subjektiver Sinn, Evidenz, Idealtypus, Legitimität.",
+    cards:[
+      {q:"Webers Definition der Soziologie", a:"Eine Wissenschaft, die <strong>soziales Handeln deutend verstehen</strong> will, um dessen Ablauf und Wirkungen <strong>ursächlich zu erklären</strong>. Handeln unterscheidet sich von bloßem Verhalten dadurch, dass der Akteur einen <strong>subjektiven Sinn</strong> damit verbindet."},
+      {q:"Handeln vs. Verhalten", a:"„Handeln“ = menschliches Verhalten, mit dem der Handelnde einen <strong>subjektiven Sinn</strong> verbindet. Bloßes „Verhalten“ ist rein reaktiv (z. B. Blinzeln, Zusammenzucken)."},
+      {q:"Was ist „soziales“ Handeln?", a:"Ein Verhalten, das nach dem subjektiven Sinn des Handelnden <strong>auf das Verhalten anderer bezogen</strong> ist und sich in seinem Ablauf daran orientiert."},
+      {q:"Sinn (bei Weber)", a:"Der <strong>subjektiv gemeinte Gehalt</strong> einer Handlung, der sie von bloß reaktivem Verhalten unterscheidet."},
+      {q:"Die zwei Arten der Evidenz", a:"1. <strong>Rationale Evidenz</strong>: das Handeln ist intellektuell (logisch/mathematisch) unmittelbar nachvollziehbar. 2. <strong>Einfühlend nacherlebende Evidenz</strong>: der Gefühlszusammenhang lässt sich emotional nachempfinden."},
+      {q:"Die vier Bestimmungsgründe des Handelns", a:"1. <strong>Zweckrational</strong> (erfolgsorientiert: Zweck–Mittel–Folgen) · 2. <strong>Wertrational</strong> (überzeugungsorientiert, Eigenwert der Tat) · 3. <strong>Affektuell</strong> (gefühlsorientiert: Rache, Lust) · 4. <strong>Traditional</strong> (gewohnheitsorientiert: „war schon immer so“)."},
+      {q:"Idealtypus", a:"Kein Abbild der Realität, sondern eine <strong>wissenschaftliche Konstruktion eines rein zweckrationalen Handelns</strong>. Dient als theoretischer Maßstab, um die unübersichtliche Wirklichkeit vergleichbar und messbar zu machen (Abweichung feststellen)."},
+      {q:"Vier Gründe für den Legitimitätsglauben", a:"1. <strong>Tradition</strong> (Heiligkeit des Bestehenden) · 2. <strong>Affekt</strong> (Hingabe an Vorbild/Charisma) · 3. <strong>Wertrationaler Glaube</strong> (ethische Pflicht) · 4. <strong>Satzung</strong> (Glaube an Legalität formaler Regeln)."}
+    ],
+    quiz:[
+      {q:"Was macht aus „Verhalten“ ein „Handeln“?", opts:["Es ist beobachtbar","Der Akteur verbindet einen subjektiven Sinn damit","Es ist zielgerichtet erfolgreich","Es betrifft mehrere Personen"], correct:1, exp:"Der subjektiv gemeinte Sinn ist das entscheidende Kriterium."},
+      {q:"„Ich zahle pünktlich Steuern, weil es Gesetz ist.“ – Welcher Handlungstyp?", opts:["Affektuell","Traditional","Zweckrational bzw. legal-satzungsgebunden","Wertrational"], correct:2, exp:"Orientierung an der Legalität formaler Regeln / zweckrational-erfolgsorientiert; nicht aus Gefühl oder Gewohnheit."},
+      {q:"Der Idealtypus ist …", opts:["ein statistischer Durchschnitt","ein Abbild der Realität","eine Konstruktion rein zweckrationalen Handelns als Maßstab","ein moralisches Ideal"], correct:2, exp:"Er ist ein theoretisches Vergleichsmodell, kein Abbild und kein Durchschnitt."},
+      {q:"Welche gehört NICHT zu den vier Bestimmungsgründen des Handelns?", opts:["Zweckrational","Wertrational","Charismatisch","Traditional"], correct:2, exp:"Die vier sind zweckrational, wertrational, affektuell, traditional. Charisma gehört zu den Legitimitätsgründen."},
+      {q:"„Einfühlend nacherlebende Evidenz“ bedeutet …", opts:["logische Nachvollziehbarkeit","emotionales Nachempfinden des Gefühlszusammenhangs","statistischen Beweis","richterliches Urteil"], correct:1, exp:"Neben rationaler Evidenz die zweite Art, Sinn mit Gewissheit zu erfassen."},
+      {q:"Soziales Handeln ist …", opts:["jedes menschliche Handeln","auf das Verhalten anderer bezogen und daran orientiert","nur Handeln in Gruppen","nur ökonomisches Handeln"], correct:1, exp:"Der Bezug auf andere (nach subjektivem Sinn) macht Handeln zu sozialem Handeln."}
+    ]
+  },
+  {
+    id:"durkheim", title:"Émile Durkheim", sub:"Soziologischer Tatbestand",
+    lead:"Soziale Tatsachen „wie Dinge“ behandeln: Äußerlichkeit, Zwang, Kollektivität.",
+    cards:[
+      {q:"Definition: soziologischer Tatbestand", a:"„Arten des <strong>Handelns, Denkens und Fühlens</strong>, die <strong>außerhalb des Individuums</strong> stehen und mit <strong>zwingender Gewalt</strong> ausgestattet sind.“"},
+      {q:"Was heißt „soziale Tatsachen wie Dinge betrachten“?", a:"Sie als <strong>äußerliches Objekt</strong> behandeln – nicht durch Nachdenken/Selbstbeobachtung verstehbar, sondern wie ein Biologe/Physiker <strong>von außen</strong> zu untersuchen. Sie sind nicht Produkt unseres Willens und leisten uns Widerstand (wiss. Objektivität)."},
+      {q:"Merkmal 1: Äußerlichkeit (Extériorité)", a:"Soziale Tatsachen existieren <strong>unabhängig vom Willen des Einzelnen</strong>. Beispiele: Rechtssystem, Sprache, Münzsystem – man findet sie bei der Geburt bereits vor."},
+      {q:"Merkmal 2: Zwang (Contrainte)", a:"Der soziale Druck zeigt sich oft <strong>erst, wenn man Widerstand leistet</strong> – etwa durch rechtliche Sanktionen oder soziale Missbilligung. Solange man sich fügt, bleibt der Zwang unbemerkt (Gewohnheit)."},
+      {q:"Merkmal 3: Kollektivität", a:"Ein Phänomen ist sozial, weil es <strong>allgemein in der Gruppe</strong> auftritt und ein „unabhängiges Eigenleben“ besitzt, das <strong>über die Summe der Einzelhandlungen hinausgeht</strong>."},
+      {q:"Abgrenzung: gegen Biologie & Psychologie", a:"Der soziologische Tatbestand gehört einer „völlig neuen Gattung“ an. <strong>Gegen Biologie</strong>: keine organischen Erscheinungen (bestehen aus Handlungen/Vorstellungen). <strong>Gegen Psychologie</strong>: Substrat nicht im individuellen Bewusstsein, sondern in der Gesellschaft."},
+      {q:"Sanktion vs. praktische Unmöglichkeit", a:"„Nicht gehen“: Rechtsverstöße rufen Reaktionen hervor (Strafe, Nichtigkeit). „Dumm wäre“: Man ist nicht gezwungen, Landessprache/Währung zu nutzen, aber es ist praktisch unmöglich, anders zu handeln – Ignorieren führt zu Scheitern/sozialer Isolation."},
+      {q:"Erziehung & Milieu", a:"Erziehung = ununterbrochene Bemühung, dem Kind Arten des Sehens/Fühlens/Handelns aufzuerlegen (Reinlichkeit, Ruhe, Gehorsam). Eltern/Lehrer sind nur <strong>Vermittler des sozialen Milieus</strong>, dessen Druck das Kind nach seinem Bild formt."},
+      {q:"Drei Ebenen/Grade der Verfestigung", a:"1. <strong>Gefestigte Institutionen</strong> (Recht, Moral, Dogmen, Finanzsysteme) · 2. <strong>Soziale Strömungen</strong> (courants sociaux: kollektive Begeisterung, Entrüstung) · 3. <strong>Soziale Morphologie</strong> (materielle Basis: Bevölkerungsverteilung, Wohnstätten, Verkehrsnetz)."}
+    ],
+    quiz:[
+      {q:"Welche drei Merkmale kennzeichnen den soziologischen Tatbestand?", opts:["Sprache, Recht, Geld","Äußerlichkeit, Zwang, Kollektivität","Handeln, Denken, Fühlen","Biologie, Psychologie, Soziologie"], correct:1, exp:"Die drei Kriterien: Äußerlichkeit, Zwang, Kollektivität."},
+      {q:"Wann wird der soziale Zwang laut Durkheim fühlbar?", opts:["Immer","Nie","Erst wenn man Widerstand leistet","Nur bei Kindern"], correct:2, exp:"Solange man sich fügt, bleibt der Zwang unbemerkt; Widerstand macht ihn spürbar."},
+      {q:"Warum soll man soziale Tatsachen „wie Dinge“ behandeln?", opts:["Weil sie leblos sind","Weil sie äußerlich sind und von außen/objektiv untersucht werden müssen","Weil sie unwichtig sind","Weil sie psychologisch sind"], correct:1, exp:"Sie sind nicht Produkt unseres Willens und leisten Widerstand – daher objektive Außenperspektive."},
+      {q:"Was ist die „soziale Morphologie“?", opts:["Kollektive Gefühle","Die materielle Basis der Gesellschaft (Bevölkerung, Wohnen, Verkehr)","Rechtliche Gebote","Die Sprache"], correct:1, exp:"Sie ist die materielle Substratebene der sozialen Tatsachen."},
+      {q:"Gegen welche Disziplin grenzt Durkheim ab, weil das Substrat NICHT im individuellen Bewusstsein liegt?", opts:["Biologie","Psychologie","Ökonomie","Physik"], correct:1, exp:"Gegen die Psychologie: das Substrat liegt in der Gesellschaft, nicht im Individuum."}
+    ]
+  },
+  {
+    id:"bourdieu", title:"Pierre Bourdieu", sub:"Kapital, Habitus, Feld",
+    lead:"Reproduktion von Machtverhältnissen: Kapitalsorten, Habitus, Feld, Distinktion.",
+    cards:[
+      {q:"Kapital (allgemein)", a:"Weit mehr als Geld: <strong>akkumulierte Arbeit</strong>, die Zeit braucht, um sich zu verfestigen. Es sorgt dafür, dass die soziale Welt kein „Roulette-Spiel“ ist, sondern ein Feld mit <strong>dauerhaften Strukturen und ungleichen Startbedingungen</strong>."},
+      {q:"Die drei Kapitalsorten", a:"1. <strong>Kulturelles Kapital</strong> (inkorporiert / objektiviert / institutionalisiert) · 2. <strong>Soziales Kapital</strong> · 3. <strong>Ökonomisches Kapital</strong>. (Unterschied zu Marx: Kapital ist nicht nur ökonomisch.)"},
+      {q:"Inkorporiertes Kulturkapital", a:"Verinnerlichte Kultur/Bildung. Setzt einen <strong>Verinnerlichungsprozess voraus, der Zeit kostet</strong> und <strong>persönlich investiert</strong> werden muss – nicht durch eine fremde Person übertragbar."},
+      {q:"Objektiviertes Kulturkapital", a:"Kulturelle Güter (Bücher, Gemälde, Instrumente). Materiell kaufbar (ökonomisch), aber die <strong>symbolische Aneignung</strong> (kulturelle Nutzung) erfordert inkorporiertes Kulturkapital."},
+      {q:"Institutionalisiertes Kulturkapital", a:"Objektivierung des inkorporierten Kapitals in Form von <strong>Bildungstiteln</strong> (Abschlüsse), juristisch garantiert. Ein Titel gilt als Indikator für Wissen – Autodidakten ohne Zertifikat müssen es dagegen immer wieder beweisen."},
+      {q:"Soziales Kapital", a:"Ressourcen aus dem Besitz eines <strong>dauerhaften Beziehungsnetzes</strong> („Vitamin B“, Kreditwürdigkeit durch Gruppenzugehörigkeit). Muss durch kontinuierliche Beziehungsarbeit immer wieder neu erwirtschaftet werden."},
+      {q:"Symbolisches Kapital", a:"<strong>Keine vierte Sorte</strong>, sondern die <strong>anerkannte, als legitim wahrgenommene Form</strong> aller anderen Kapitalien. Durch „Verkennung“ werden nackte Machtstrukturen in Prestige, Ehre, „natürliche“ Autorität verwandelt („alchemistischer Prozess“)."},
+      {q:"Habitus", a:"System <strong>dauerhafter Dispositionen/Neigungen</strong>. Menschen einer Klasse denken/handeln ähnlich, ohne Absprache. „Inkorporierte Notwendigkeit“: äußere Zwänge der Kindheit werden zu inneren Vorlieben. Der Habitus ist das „Körper gewordene Soziale“."},
+      {q:"Feld", a:"Der <strong>Raum, in dem Akteure ihr Kapital einsetzen, um Profite zu erzielen</strong> (z. B. Feld der kulturellen Produktion, Bildungssystem/„schulischer Markt“, Ökonomie). Die Verteilung der Kapitalarten bildet die Struktur des Feldes und bestimmt die Spielregeln."},
+      {q:"Geschmack & Distinktion", a:"Geschmack ist nicht individuell, sondern dient der <strong>sozialen Abgrenzung (Distinktion)</strong> – ein „praktischer Operator“, der physische Dinge in symbolische Zeichen der Zugehörigkeit verwandelt. Gegensatz: „Distanz zur Not“ (Primat der Form) vs. Notwendigkeitsgeschmack (Primat der Funktion)."},
+      {q:"Kapitaltransformation & Reproduktion", a:"Kapitalarten sind konvertierbar, aber die Umwandlung kostet viel Zeit/Arbeit → Ungleichheit bleibt. „Je mehr die offizielle Übertragung ökonomischen Kapitals gebremst wird, desto stärker bestimmt die <strong>geheime Zirkulation von Kulturkapital</strong> die Reproduktion der Gesellschaftsstruktur.“"}
+    ],
+    quiz:[
+      {q:"Welche sind die drei Kapitalsorten bei Bourdieu?", opts:["Geld, Land, Arbeit","Kulturelles, soziales, ökonomisches Kapital","Symbolisches, reales, virtuelles Kapital","Inkorporiert, objektiviert, institutionalisiert"], correct:1, exp:"Die drei Grundsorten. (Inkorporiert/objektiviert/institutionalisiert sind Unterformen des kulturellen Kapitals.)"},
+      {q:"Ein Uni-Abschluss ist welche Form von Kapital?", opts:["Inkorporiertes Kulturkapital","Objektiviertes Kulturkapital","Institutionalisiertes Kulturkapital","Soziales Kapital"], correct:2, exp:"Bildungstitel = institutionalisiertes Kulturkapital, juristisch garantiert."},
+      {q:"Was ist das Besondere am symbolischen Kapital?", opts:["Es ist die wertvollste vierte Kapitalsorte","Es ist die anerkannte/legitim wahrgenommene Form der anderen Kapitalien","Es ist rein ökonomisch","Es ist nicht übertragbar"], correct:1, exp:"Keine eigene Sorte – es ist die durch „Verkennung“ legitimierte Erscheinungsform der übrigen Kapitalien."},
+      {q:"Der Habitus wird beschrieben als …", opts:["angeborener Charakter","„Körper gewordenes Soziales“ / System dauerhafter Dispositionen","bewusste Lebensplanung","rein ökonomische Lage"], correct:1, exp:"„Inkorporierte Notwendigkeit“: äußere Zwänge werden zu inneren Neigungen."},
+      {q:"„Vitamin B“ / Beziehungsnetzwerke sind ein Bild für …", opts:["ökonomisches Kapital","kulturelles Kapital","soziales Kapital","Habitus"], correct:2, exp:"Soziales Kapital = Ressourcen aus dauerhaften Beziehungsnetzen."},
+      {q:"Wozu dient Geschmack laut Bourdieu?", opts:["reinem Genuss","sozialer Abgrenzung (Distinktion)","ökonomischer Berechnung","biologischer Notwendigkeit"], correct:1, exp:"Geschmack ist ein „praktischer Operator“ der Distinktion, kein individueller Zufall."}
+    ]
+  },
+  {
+    id:"adorno", title:"Theodor W. Adorno", sub:"Kulturindustrie",
+    lead:"Kulturindustrie, Warencharakter, Pseudoindividualisierung, Freizeit.",
+    cards:[
+      {q:"Kulturindustrie", a:"Ein System der <strong>„Anti-Aufklärung“</strong>, das Kultur „von oben“ verwaltet und standardisiert. Bewusste Abkehr von Kultur, die „spontan aus den Massen“ entsteht. „Willentliche Integration ihrer Abnehmer von oben.“ Der Kunde ist <strong>nicht König, sondern Objekt</strong>."},
+      {q:"Warum lehnt Adorno den Begriff „Massenkultur“ ab?", a:"Weil er suggeriert, Kultur entstehe <strong>von unten aus den Massen selbst</strong>. Tatsächlich wird sie <strong>von oben verwaltet</strong>, standardisiert und nach dem Vorbild industrieller Produktion auf Massenkonsum zugeschnitten."},
+      {q:"Warencharakter", a:"Kulturelle Gebilde sind keine autonomen Kunstwerke mehr, sondern <strong>Waren</strong>. Sie richten sich nach dem <strong>Prinzip ihrer Verwertung</strong>, nicht nach eigenem Gehalt. „Die gesamte Praxis der Kulturindustrie überträgt das <strong>Profitmotiv blank</strong> auf die geistigen Gebilde.“"},
+      {q:"Pseudoindividualisierung", a:"Standardisierte Produkte werden mit kleinen, oberflächlichen Besonderheiten versehen, um <strong>Anschein von Einmaligkeit</strong> zu erzeugen. Täuscht Freiheit/Wahl vor und <strong>maskiert die totale Standardisierung</strong> (gleiche Filmplots, Songstrukturen) → sichert Anpassung an das System."},
+      {q:"Warum reicht reine Gleichförmigkeit nicht?", a:"Weil offene, exakte Gleichheit Widerstand wecken würde. Die <strong>Illusion von Auswahl</strong> (Pseudoindividualisierung) bricht diesen Widerstand und integriert die Individuen „willentlich“ ins System."},
+      {q:"Freizeit: Anhängsel der Arbeitswelt", a:"Freizeit ist nicht wirklich frei, sondern ein „Schattenreich“/bloßes Anhängsel der Arbeit. Sie dient funktional dazu, die <strong>Arbeitskraft zu reproduzieren</strong>, damit der Mensch wieder „fit für den Dienst“ ist."},
+      {q:"Heteronomie (in der Freizeit)", a:"<strong>Fremdbestimmtheit</strong>: Auch in vermeintlich freien Stunden bleibt das Individuum den gesellschaftlichen Normen, Konsumangeboten und Systemzwängen unterworfen, statt autonom zu handeln."},
+      {q:"Hobbies als Scheinaktivität", a:"<strong>Pseudo-Aktivität</strong>: Hobbies erwecken den Anschein von produktivem, freiem Handeln, sind aber normiert und ins gesellschaftliche Gefüge eingepasst. Sie verhindern echte Spontaneität und verschleiern die Unfreiheit."}
+    ],
+    quiz:[
+      {q:"Warum bevorzugt Adorno „Kulturindustrie“ statt „Massenkultur“?", opts:["Klingt wissenschaftlicher","Weil Kultur nicht von unten entsteht, sondern von oben verwaltet wird","Weil Massen keine Kultur haben","Aus Zufall"], correct:1, exp:"„Massenkultur“ täuscht eine Entstehung von unten vor – tatsächlich Verwaltung von oben."},
+      {q:"Der Kunde ist in der Kulturindustrie …", opts:["König","Subjekt","Objekt","Produzent"], correct:2, exp:"Zitat: „Der Kunde ist … nicht ihr Subjekt, sondern ihr Objekt.“"},
+      {q:"Wonach richtet sich das Kulturprodukt laut Warencharakter?", opts:["nach seinem autonomen Gehalt","nach dem Prinzip seiner Verwertung/Profit","nach der Wahrheit","nach dem Künstlerwillen"], correct:1, exp:"Das Profitmotiv wird „blank“ auf die geistigen Gebilde übertragen."},
+      {q:"Pseudoindividualisierung dient dazu, …", opts:["echte Vielfalt zu schaffen","die totale Standardisierung zu verschleiern","Kosten zu senken","Kunst autonom zu machen"], correct:1, exp:"Kleine Unterschiede maskieren die Gleichheit und erzeugen Illusion von Wahl."},
+      {q:"Was meint „Heteronomie“ in Bezug auf Freizeit?", opts:["Selbstbestimmung","Fremdbestimmtheit","Faulheit","Kreativität"], correct:1, exp:"Auch in der Freizeit bleibt das Individuum fremdbestimmt (Normen, Konsum, Systemzwang)."},
+      {q:"Freizeit ist bei Adorno vor allem …", opts:["Raum echter Freiheit","Anhängsel der Arbeitswelt zur Reproduktion der Arbeitskraft","politischer Widerstand","autonome Selbstverwirklichung"], correct:1, exp:"Sie dient funktional der Regeneration für den nächsten Arbeitsdienst."}
+    ]
+  },
+  {
+    id:"elias", title:"Norbert Elias", sub:"Figuration & Macht",
+    lead:"Figuration, Interdependenzketten, Machtbalance, Etablierte & Außenseiter.",
+    cards:[
+      {q:"Warum der Begriff „Figuration“?", a:"Um die Spaltung von „Individuum“ und „Gesellschaft“ zu überwinden. Der Mensch existiert <strong>immer nur im Plural</strong>, verbunden durch <strong>Interdependenzen</strong> (gegenseitige Abhängigkeiten)."},
+      {q:"Interdependenzketten", a:"Die <strong>gegenseitigen Abhängigkeiten</strong>, die Menschen verbinden. Der Mensch existiert nie isoliert (Kritik am <strong>„Homo clausus“</strong>), sondern eingebunden in Ketten funktionaler und emotionaler Bindungen."},
+      {q:"Definition Figuration", a:"Ein <strong>sich wandelndes Muster</strong>, das Menschen in ihrer gegenseitigen Abhängigkeit bilden / das durch die Verflechtung von Handlungen entsteht. Analogien: Karten- oder Fußballspiel – das „Spiel“ hat relative Autonomie, existiert aber nur durch die Mitwirkung der Spieler."},
+      {q:"Macht bei Elias", a:"Macht ist <strong>kein „Besitz“, sondern ein fluktuierendes Spannungsgleichgewicht</strong> (Machtbalance) innerhalb einer Figuration – ein <strong>Verhältnis gegenseitiger Abhängigkeit</strong>, dynamisch und relational."},
+      {q:"Warum „Machtbalance“ statt „Machtbesitz“?", a:"Weil „Balance“ den <strong>dynamischen und relationalen</strong> Charakter beschreibt: Interdependenz, fluktuierendes Spannungsgleichgewicht, Prozesscharakter, Stigmatisierung als Waffe. Macht liegt nicht fest bei einer Person."},
+      {q:"Etablierte & Außenseiter – Gruppencharisma", a:"Die <strong>Etablierten schreiben sich selbst „edle Qualitäten“ zu</strong> (Eigenwert/positives Wir-Bild)."},
+      {q:"Gruppenschande", a:"Den <strong>Außenseitern wird ein „Schandmal“ aufgedrückt</strong>, das sie oft selbst internalisieren."},
+      {q:"Kohäsion", a:"Die Macht der Etablierten beruht auf ihrem <strong>stärkeren Zusammenhalt (Integration)</strong> – bessere Organisation sichert den Vorrang."},
+      {q:"Psychische Dimension der Stigmatisierung", a:"Stigmatisierung ist wirksam, weil sie in das <strong>„Wir-Bild“ und Selbstwertgefühl</strong> der Außenseiter eindringt. Die Betroffenen internalisieren das Schandmal oft selbst → Verbindung von Soziologie und Psychologie."}
+    ],
+    quiz:[
+      {q:"Was kritisiert Elias mit dem Begriff „Homo clausus“?", opts:["Den geschlossenen Staat","Die Vorstellung des isolierten Einzelmenschen","Geschlossene Gesellschaften","Das Privateigentum"], correct:1, exp:"Der Mensch existiert nie isoliert, sondern nur im Plural (in Interdependenzketten)."},
+      {q:"Eine Figuration ist …", opts:["eine feste Struktur","ein sich wandelndes Muster wechselseitiger Abhängigkeit","ein Individuum","eine Institution"], correct:1, exp:"Ein dynamisches Verflechtungsmuster – Analogie Fußball-/Kartenspiel."},
+      {q:"Macht ist bei Elias …", opts:["fester Besitz der Herrschenden","ein fluktuierendes Spannungsgleichgewicht (Balance)","gesetzlich geregelt","gleich verteilt"], correct:1, exp:"Machtbalance betont den relationalen, dynamischen Charakter."},
+      {q:"„Die Etablierten schreiben sich edle Qualitäten zu.“ – Begriff?", opts:["Gruppenschande","Gruppencharisma","Kohäsion","Stigma"], correct:1, exp:"Gruppencharisma = positives kollektives Selbstbild der Etablierten."},
+      {q:"Worauf beruht der Machtvorsprung der Etablierten vor allem?", opts:["auf Geld","auf stärkerer Kohäsion/Zusammenhalt","auf Gesetzen","auf Zufall"], correct:1, exp:"Bessere Integration/Organisation (Kohäsion) sichert den Vorrang."},
+      {q:"Warum wirkt Stigmatisierung so stark?", opts:["rechtliche Strafen","sie dringt ins Wir-Bild/Selbstwertgefühl ein und wird internalisiert","ökonomischer Druck","physische Gewalt"], correct:1, exp:"Die psychische Dimension: Außenseiter übernehmen das Schandmal selbst."}
+    ]
+  },
+  {
+    id:"postkolonial", title:"Postkoloniale Stadt", sub:"Ha & Mengi · Hoerning & Eckhardt",
+    lead:"Stadt als koloniales Labor, Postkolonialismus, NaDiRa-Studie, Dekolonialität.",
+    cards:[
+      {q:"Simmels Blick auf die Stadt (Hintergrund)", a:"Georg Simmel analysierte die „moderne Stadt“ um 1900 als Ort der <strong>Individualisierung</strong> und der <strong>„inneren Gleichgültigkeit“/Blasiertheit</strong> zum Schutz vor Überreizung. Stichworte: Geldwirtschaft, Wechselwirkung."},
+      {q:"Stadt als „koloniales Labor“", a:"Städte wie <strong>Casablanca oder Windhoek</strong> dienten als „Laboratorien“ für moderne Stadtplaner, um Konzepte der <strong>räumlichen Trennung (Segregation)</strong> zu erproben, die später auf europäische Metropolen übertragen wurden."},
+      {q:"Postkolonialismus", a:"Die <strong>Reflexion der Folge- und Nachwirkungen</strong> kolonialer Herrschaftsverhältnisse."},
+      {q:"Dekolonialität", a:"Die <strong>politische und emanzipatorische Praxis</strong> des Widerstands gegen koloniale Kontinuitäten."},
+      {q:"(Städtischer) Orientalismus", a:"Konstruktion des „Anderen“ im urbanen Raum und <strong>Ethnisierung sozialer Problemlagen</strong>. Basis: Edward Saids Orientalismus-Diskurs als „Wissenssystem“, das das „okzidentale Selbst“ vom „orientalischen Anderen“ trennt."},
+      {q:"Hybridität (Homi Bhabha)", a:"Keine bloße Vermischung, sondern eine kontingente Praxis der <strong>Bedeutungsverschiebung und Unterwanderung</strong> kultureller Zeichen, die in einem <strong>„Third Space“</strong> den willkürlich konstruierten Charakter kultureller Grenzen sichtbar macht."},
+      {q:"NaDiRa-Studie: Kernergebnisse", a:"<strong>Wohnraumsuche</strong>: 38 % der Schwarzen / 27 % der muslimischen Befragten berichten von verweigerten Immobilien (vs. 79 % ohne Diskriminierung bei nicht markierten Personen). <strong>Wohnfläche</strong>: Mehrheit 114,8 m² vs. Schwarze Menschen 72,5 m² (>40 m² Differenz). <strong>Wohnstabilität</strong>: rassifizierte Gruppen ziehen häufiger um."},
+      {q:"NaDiRa: Forschungsvorgang", a:"Repräsentatives <strong>NaDiRa.panel</strong> (>9000 Personen). Betroffene Gruppen gezielt überrepräsentiert (u. a. <strong>onomastische</strong>/Namensanalyse in Melderegistern). Basis: <strong>Selbstidentifikation</strong> statt Staatsangehörigkeit. Kontrolle per <strong>Regressionsanalyse</strong> (Bildung, Alter)."},
+      {q:"Praxis: Recht auf Stadt dekolonisieren", a:"<strong>Städtisches Erbe</strong> (Denkmäler, Straßennamen wie Wissmannstraße), <strong>Erinnern & Vergessen</strong> (Aushandlung von Stadtgeschichte), <strong>Hybridität</strong>. Methode: <strong>Kritisches Kartieren</strong> – Sichtbarmachen vergessener (post)kolonialer Stadtgeschichten."}
+    ],
+    quiz:[
+      {q:"Was ist mit „Städte als Laboratorien“ gemeint?", opts:["Orte der Wissenschaft","Orte, an denen Segregation erprobt und später nach Europa übertragen wurde","Universitätsstädte","Industriestädte"], correct:1, exp:"Kolonialstädte als Testfelder für räumliche Trennung."},
+      {q:"Dekolonialität bezeichnet …", opts:["die Reflexion kolonialer Nachwirkungen","die politisch-emanzipatorische Widerstandspraxis","die koloniale Verwaltung","die Vermischung von Kulturen"], correct:1, exp:"Postkolonialismus = Reflexion; Dekolonialität = aktive Widerstandspraxis."},
+      {q:"Der durchschnittliche Wohnflächen-Unterschied (Mehrheit vs. Schwarze Menschen) beträgt laut NaDiRa …", opts:["ca. 10 m²","ca. 40 m² (114,8 vs. 72,5)","ca. 5 m²","keinen Unterschied"], correct:1, exp:"114,8 m² gegenüber 72,5 m² – über 40 m² materieller Abstand."},
+      {q:"„Hybridität“ nach Homi Bhabha ist …", opts:["reine Vermischung von Kulturen","Bedeutungsverschiebung/Unterwanderung im „Third Space“","Assimilation","Segregation"], correct:1, exp:"Kontingente Praxis, die die Konstruiertheit kultureller Grenzen sichtbar macht."},
+      {q:"Wie wurden betroffene Gruppen in der NaDiRa-Studie erfasst?", opts:["über Staatsangehörigkeit","über Selbstidentifikation, u. a. mit Namensanalyse in Melderegistern","zufällig","über Sprachtests"], correct:1, exp:"Onomastische Vorklassifikation + Selbstidentifikation statt administrativer Daten."},
+      {q:"„Kritisches Kartieren“ ist …", opts:["eine Vermessungstechnik","eine Methode dekolonialer Erinnerungspraxis","eine Wohnungspolitik","ein statistisches Verfahren"], correct:1, exp:"Es dokumentiert vergessene (post)koloniale Stadtgeschichten im Stadtraum."}
+    ]
+  },
+  {
+    id:"gender", title:"West & Zimmerman", sub:"Doing Gender",
+    lead:"Geschlecht als soziale Praxis: Sex, Sex Category, Gender, Accountability.",
+    cards:[
+      {q:"Geschlecht als soziale Praxis", a:"Geschlecht ist keine Eigenschaft von Individuen, sondern ein <strong>„emergentes Merkmal sozialer Situationen“</strong> – hergestellt durch Verhalten, gesteuert von normativen Vorstellungen über das „Angemessene“. Zugleich Ergebnis und Rechtfertigung sozialer Arrangements."},
+      {q:"Sex", a:"Bestimmung des Geschlechts durch <strong>sozial vereinbarte biologische Kriterien</strong> (Genitalien, Chromosomen)."},
+      {q:"Sex Category", a:"Die <strong>alltägliche Zuordnung</strong> zu einer Kategorie über Identifikationsmerkmale (Kleidung, Haare), die als Stellvertreter für das biologische Geschlecht fungieren („identificatory displays“)."},
+      {q:"Gender", a:"Die <strong>Aktivität, das eigene Verhalten so zu steuern</strong>, dass es den normativen Erwartungen der jeweiligen Sex Category entspricht („managing situated conduct“)."},
+      {q:"Doing Gender", a:"Eine <strong>routinehafte, methodische, immer wiederkehrende interaktive Leistung</strong> in alltäglichen Situationen. Individuen steuern ihr Handeln nach normativen Erwartungen → soziale Differenzen erscheinen als „natürlich“ und werden legitimiert."},
+      {q:"Accountability (Rechenschaftspflicht)", a:"Wir werden von der Gesellschaft <strong>ständig überprüft</strong>, ob unser Verhalten zu unserer Kategorie passt. Deshalb „müssen“ wir Gender tun."},
+      {q:"Sanktionen", a:"Soziale Kontrollmechanismen der Accountability: Bei <strong>Abweichung</strong> von normativen Geschlechtserwartungen droht, <strong>diskreditiert</strong> oder in der sozialen Kompetenz in Frage gestellt zu werden."},
+      {q:"Ressourcen & Machtverhältnisse", a:"Physische/institutionelle Rahmenbedingungen (z. B. getrennte Toiletten, Sportarten) dienen als <strong>Requisiten der Inszenierung</strong>, die Geschlechtsunterschiede „natürlich“ erscheinen lassen. Institutionen sind das „interaktive Gerüst“; Doing Gender <strong>zementiert Dominanz/Deferenz</strong> als scheinbar natürliche Differenz → ideologisches Werkzeug."}
+    ],
+    quiz:[
+      {q:"Geschlecht ist bei West & Zimmerman vor allem …", opts:["eine Eigenschaft des Individuums","ein emergentes Merkmal sozialer Situationen","rein biologisch","eine freie Entscheidung"], correct:1, exp:"„gender as an emergent feature of social situations“ – hergestellt in Interaktion."},
+      {q:"Welche Definition passt zu „Sex Category“?", opts:["biologische Kriterien (Chromosomen)","alltägliche Zuordnung über Merkmale wie Kleidung/Haare","Verhaltenssteuerung nach Normen","rechtlicher Status"], correct:1, exp:"Sex Category = kategoriale Zuordnung im Alltag durch identificatory displays."},
+      {q:"„Gender“ ist demnach …", opts:["das biologische Geschlecht","die Aktivität, Verhalten nach Normerwartungen zu steuern","der Personalausweis-Eintrag","die Chromosomenstruktur"], correct:1, exp:"Gender = „managing situated conduct“ gemäß normativer Erwartungen."},
+      {q:"Warum „müssen“ wir Gender tun?", opts:["aus Naturgesetz","wegen Accountability / sozialer Kontrolle","aus ökonomischem Zwang","es gibt keinen Grund"], correct:1, exp:"Rechenschaftspflicht: Verhalten wird ständig auf Kategorienkonformität geprüft, Abweichung sanktioniert."},
+      {q:"Getrennte Toiletten sind ein Beispiel für …", opts:["biologische Notwendigkeit","Ressourcen/Requisiten, die Geschlecht als „natürlich“ inszenieren","Doing Gender-Verweigerung","Accountability"], correct:1, exp:"Institutionelle Ressourcen lassen kulturelle Arrangements als biologisch erscheinen."},
+      {q:"Doing Gender wirkt gesellschaftlich als …", opts:["neutrales Verhalten","ideologisches Werkzeug, das Hierarchien (Dominanz/Deferenz) legitimiert","reine Privatsache","biologische Tatsache"], correct:1, exp:"Es zementiert Machtverhältnisse, indem es sie als natürliche Differenz verkennt."}
+    ]
+  }
+];
+
+/* ============ STATE / STORAGE ============ */
+const LS_KEY = "sozges_progress_v1";
+let progress = load();
+function load(){ try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch(e){return {}} }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(progress)); }
+function themeProg(id){ if(!progress[id]) progress[id]={known:{},quizBest:null}; return progress[id]; }
+
+/* ============ DOM refs ============ */
+const $ = s=>document.querySelector(s);
+const home=$("#home"), themeView=$("#theme"), grid=$("#themeGrid");
+let cur=null, cardIdx=0;
+
+/* ============ HOME RENDER ============ */
+function renderHome(){
+  grid.innerHTML="";
+  THEMES.forEach((t,i)=>{
+    const p=themeProg(t.id);
+    const knownCount=Object.values(p.known).filter(Boolean).length;
+    const total=t.cards.length;
+    const done = knownCount===total;
+    const el=document.createElement("div");
+    el.className="card-t";
+    el.innerHTML=`
+      <div class="num">Thema ${i+1}</div>
+      <h3>${t.title}</h3>
+      <div class="sub">${t.sub}</div>
+      <div class="meta">
+        <span class="pill ${done?'done':''}">${knownCount}/${total} Karten</span>
+        <span class="pill">${p.quizBest!=null?('Quiz '+p.quizBest+'/'+t.quiz.length):'Quiz offen'}</span>
+      </div>`;
+    el.onclick=()=>openTheme(t.id);
+    grid.appendChild(el);
+  });
+  updateGlobal();
+}
+function updateGlobal(){
+  let known=0,total=0;
+  THEMES.forEach(t=>{ const p=themeProg(t.id); total+=t.cards.length; known+=Object.values(p.known).filter(Boolean).length; });
+  const pct= total? Math.round(known/total*100):0;
+  $("#globalbar").style.width=pct+"%";
+  $("#globaltxt").textContent=pct+" % gelernt";
+}
+
+/* ============ THEME VIEW ============ */
+function openTheme(id){
+  cur=THEMES.find(t=>t.id===id); cardIdx=0;
+  home.classList.add("hidden"); themeView.classList.remove("hidden");
+  $("#tTitle").textContent=cur.title;
+  $("#tLead").textContent=cur.lead;
+  document.querySelectorAll(".modeswitch button").forEach(b=>b.classList.toggle("active",b.dataset.mode==="cards"));
+  $("#cardsMode").classList.remove("hidden"); $("#quizMode").classList.add("hidden");
+  renderCard();
+  window.scrollTo(0,0);
+}
+$("#backHome").onclick=()=>{ themeView.classList.add("hidden"); home.classList.remove("hidden"); renderHome(); };
+
+/* mode switch */
+document.querySelectorAll(".modeswitch button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".modeswitch button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    if(b.dataset.mode==="cards"){ $("#cardsMode").classList.remove("hidden"); $("#quizMode").classList.add("hidden"); renderCard(); }
+    else { $("#cardsMode").classList.add("hidden"); $("#quizMode").classList.remove("hidden"); startQuiz(); }
+  };
+});
+
+/* ============ FLASHCARDS ============ */
+const flashcard=$("#flashcard");
+function renderCard(){
+  const c=cur.cards[cardIdx];
+  flashcard.classList.remove("flip");
+  $("#knowRow").style.display="none";
+  $("#fcFront").innerHTML=c.q;
+  $("#fcBack").innerHTML=c.a;
+  $("#fcCounter").textContent=`Karte ${cardIdx+1} / ${cur.cards.length}`;
+}
+flashcard.onclick=()=>{
+  flashcard.classList.toggle("flip");
+  if(flashcard.classList.contains("flip")) $("#knowRow").style.display="flex";
+};
+$("#nextCard").onclick=()=>{ cardIdx=(cardIdx+1)%cur.cards.length; renderCard(); };
+$("#prevCard").onclick=()=>{ cardIdx=(cardIdx-1+cur.cards.length)%cur.cards.length; renderCard(); };
+$("#btnKnow").onclick=(e)=>{ e.stopPropagation(); themeProg(cur.id).known[cardIdx]=true; save(); nextOrDone(); };
+$("#btnAgain").onclick=(e)=>{ e.stopPropagation(); themeProg(cur.id).known[cardIdx]=false; save(); nextOrDone(); };
+function nextOrDone(){
+  if(cardIdx<cur.cards.length-1){ cardIdx++; renderCard(); }
+  else { renderCard(); }
+  updateGlobal();
+}
+
+/* keyboard */
+document.addEventListener("keydown",e=>{
+  if(themeView.classList.contains("hidden")) return;
+  if($("#cardsMode").classList.contains("hidden")) return;
+  if(e.key==="ArrowRight") $("#nextCard").click();
+  else if(e.key==="ArrowLeft") $("#prevCard").click();
+  else if(e.key===" "){ e.preventDefault(); flashcard.click(); }
+});
+
+/* ============ QUIZ ============ */
+let qIdx=0, qScore=0, qOrder=[];
+function startQuiz(){
+  qIdx=0; qScore=0;
+  qOrder=cur.quiz.map((_,i)=>i);
+  renderQuizQ();
+}
+function renderQuizQ(){
+  const area=$("#quizArea");
+  if(qIdx>=cur.quiz.length){ renderQuizResult(); return; }
+  const q=cur.quiz[qIdx];
+  area.innerHTML=`
+    <div class="quiz-q">
+      <div class="qnum">Frage ${qIdx+1} / ${cur.quiz.length} · Punkte: ${qScore}</div>
+      <h3>${q.q}</h3>
+      <div id="opts"></div>
+      <div class="explain hidden" id="exp"></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn hidden" id="nextQ">Weiter ›</button>
+      </div>
+    </div>`;
+  const optsBox=$("#opts");
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.textContent=o;
+    b.onclick=()=>answer(i,b);
+    optsBox.appendChild(b);
+  });
+}
+function answer(i,btn){
+  const q=cur.quiz[qIdx];
+  const all=[...document.querySelectorAll(".opt")];
+  all.forEach((b,idx)=>{
+    b.classList.add("disabled"); b.onclick=null;
+    if(idx===q.correct) b.classList.add("correct");
+  });
+  if(i===q.correct){ qScore++; }
+  else { btn.classList.add("wrong"); }
+  const exp=$("#exp"); exp.classList.remove("hidden"); exp.innerHTML="💡 "+q.exp;
+  const nb=$("#nextQ"); nb.classList.remove("hidden");
+  nb.textContent = qIdx<cur.quiz.length-1 ? "Weiter ›" : "Ergebnis anzeigen";
+  nb.onclick=()=>{ qIdx++; renderQuizQ(); };
+}
+function renderQuizResult(){
+  const p=themeProg(cur.id);
+  if(p.quizBest==null || qScore>p.quizBest){ p.quizBest=qScore; save(); }
+  const total=cur.quiz.length;
+  const pct=Math.round(qScore/total*100);
+  let msg = pct===100?"Perfekt! 🎉":pct>=70?"Stark – gut gelernt!":pct>=40?"Solide Basis, dranbleiben.":"Nochmal die Karteikarten anschauen 👍";
+  $("#quizArea").innerHTML=`
+    <div class="result">
+      <div class="score">${qScore}/${total}</div>
+      <p>${msg}</p>
+      <p style="font-size:13px">Beste bisher: ${p.quizBest}/${total}</p>
+      <div class="row" style="justify-content:center;margin-top:18px">
+        <button class="btn ghost" id="reDo">Nochmal</button>
+        <button class="btn" id="toCards">Zu den Karten</button>
+      </div>
+    </div>`;
+  $("#reDo").onclick=startQuiz;
+  $("#toCards").onclick=()=>document.querySelector('.modeswitch button[data-mode="cards"]').click();
+  updateGlobal();
+}
+
+/* ============ RESET ============ */
+$("#resetAll").onclick=()=>{
+  if(confirm("Gesamten Lernfortschritt wirklich zurücksetzen?")){
+    progress={}; save(); renderHome();
+  }
+};
+
+/* init */
+renderHome();
+</script>
+</body>
+</html>
